@@ -19,7 +19,7 @@ function renderLoginForm() {
         <button type="button" class="form-action-button main-form-button" onclick="loginUser(event)">Log In</button>
 
         <i>Don't have an account?</i>
-        <button type="button" class="form-action-button" onclick="renderRegistrationForm(   )">Register</button>
+        <button type="button" class="form-action-button" onclick="renderRegistrationForm()">Register</button>
     </div>
 </form>`;
 }
