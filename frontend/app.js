@@ -16,10 +16,10 @@ function renderLoginForm() {
         <input type="password" name="password" autocomplete="off" />
     </div>
     <div class="button-field">
-        <button class="form-action-button main-form-button" onclick="loginUser()">Log In</button>
+        <button type="button" class="form-action-button main-form-button" onclick="loginUser(event)">Log In</button>
 
         <i>Don't have an account?</i>
-        <button class="form-action-button" onclick="renderRegistrationForm()">Register</button>
+        <button type="button" class="form-action-button" onclick="renderRegistrationForm(   )">Register</button>
     </div>
 </form>`;
 }
@@ -43,12 +43,22 @@ function renderRegistrationForm() {
         <input type="password" name="confirm_password" autocomplete="off" />
     </div>
     <div class="button-field">
-        <button class="form-action-button main-form-button" onclick="registerUser()">Register</button>
+        <button type="button" class="form-action-button main-form-button" onclick="registerUser(event)">Register</button>
 
         <i>Already have an account?</i>
-        <button class="form-action-button" onclick="renderLoginForm()">Log In</button>
+        <button type="button" class="form-action-button" onclick="renderLoginForm()">Log In</button>
     </div>
 </form>`;
+}
+
+function loginUser(event) {
+    event.preventDefault();
+    console.log("Login!");
+}
+
+function registerUser(event) {
+    event.preventDefault();
+    console.log("Register!");
 }
 
 async function checkAuth() {
