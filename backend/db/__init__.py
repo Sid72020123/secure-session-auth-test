@@ -9,8 +9,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-# SQLite database
-engine = create_engine("sqlite:///auth.db", echo=True)
+
+def create_sqlite_engine():
+    # SQLite database
+    engine = create_engine("sqlite:///auth.db", echo=True)
+    return engine
 
 
 class Base(DeclarativeBase):
@@ -28,7 +31,7 @@ class User(Base):
     updated_at: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # One user -> many sessions
-    sessions: Mapped[list["Session"]] = relationship(
+    sessions: Mapped[list["UserSession"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -62,4 +65,6 @@ class UserSession(Base):
 
 
 def create_all_tables():
+    engine = create_sqlite_engine()
     Base.metadata.create_all(engine)
+    return engine
