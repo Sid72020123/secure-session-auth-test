@@ -1,6 +1,7 @@
 import time
 
-from sqlalchemy.orm import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 """
 import hashlib
@@ -27,24 +28,42 @@ with Session(engine) as db:
     db.commit()
 """
 
-from db import create_all_tables, User, UserSession
+from db import engine, User, UserSession
 from db.utils import normalize_username
 
 from utils import hash_password
 
 
-def register_user(username: str, password: str):
-    print(hash_password(password), type(hash_password(password)))
-    engine = create_all_tables()
+def register_user(username: str, password: str) -> tuple[bool, User | str]:
+    # --> Validate Username
+    username = username.strip()
 
-    now = time.time()
+    if not 3 <= len(username) <= 30:
+        return False, "Username must be between 3 and 30 characters."
+
+    # -> Validate Password
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters."
+
+    username_norm = normalize_username(username)
+
+    now = int(time.time())
 
     with Session(engine) as db:
-        users = 
+
+        existing_user = db.scalar(
+            select(User).where(User.username_norm == username_norm)
+        )
+
+        if existing_user is not None:
+            return False, "Username already exists!"
+
+        password_hash = hash_password(password)
+
         user = User(
             username=username,
-            username_norm=normalize_username(username),
-            password_hash=hash_password(password),
+            username_norm=username_norm,
+            password_hash=password_hash,
             created_at=now,
             updated_at=now,
         )
@@ -52,7 +71,9 @@ def register_user(username: str, password: str):
         db.add(user)
         db.commit()
 
-        print(user.id)
+        db.refresh(user)
+
+        return True, user
 
 
-register_user("Sid", "123456")
+print(register_user("Sid", "123456"))

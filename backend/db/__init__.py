@@ -68,3 +68,6 @@ def create_all_tables():
     engine = create_sqlite_engine()
     Base.metadata.create_all(engine)
     return engine
+
+
+engine = create_all_tables()
