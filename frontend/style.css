@@ -38,6 +38,53 @@ body {
 
 main {
     background-color: white;
-    padding: 1rem 7rem;
+    padding: 1rem 3rem;
     border-radius: 5px;
+    min-width: 30%;
 }
+
+main > h1 {
+    text-align: center;
+    text-decoration: underline double #c92a2a 2px;
+}
+
+main > form {
+    font-size: 1.5rem;
+}
+
+form > .field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    color: grey;
+
+    transition: color 0.2s ease;
+}
+
+.field:focus-within label {
+    color: black;
+}
+
+.field input {
+    display: block;
+    width: 100%;
+
+    padding: 0.7rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.field input:focus {
+    background-color: #ffd8a8;
+    border-color: #d9480f;
+    outline: none;
+}
+
