@@ -56,6 +56,18 @@ form > .field {
     margin-bottom: 1rem;
 }
 
+form > .button-field {
+    text-align: center;
+}
+
+.button-field i {
+    margin-top: 2rem;
+    margin-bottom: 0.3rem;
+    color: gray;
+    font-size: 1rem;
+    display: block;
+}
+
 .field label {
     display: block;
     font-size: 0.9rem;
@@ -79,7 +91,9 @@ form > .field {
     border-radius: 6px;
     background-color: white;
 
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .field input:focus {
@@ -88,3 +102,28 @@ form > .field {
     outline: none;
 }
 
+form button.form-action-button {
+    font-size: 0.9rem;
+    font-weight: bold;
+
+    border: none;
+    border-radius: 6px;
+
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+
+    margin: 0 auto;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+button.main-form-button {
+    background: #2563eb;
+    color: white;
+}
+
+button.main-form-button:hover {
+    background: #1d4ed8;
+}
