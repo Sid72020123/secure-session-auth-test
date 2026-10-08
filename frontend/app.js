@@ -73,6 +73,10 @@ function validateUsername(n) {
     return typeof n === "string" && n.trim().length >= 3 && n.trim().length <= 30;
 }
 
+function validatePassword(n) {
+    return typeof n === "string" && n.trim().length >= 8;
+}
+
 async function loginUser(event) {
     event.preventDefault();
 
@@ -82,12 +86,18 @@ async function loginUser(event) {
     console.log(validateUsername(username));
 
     if (!validateUsername(username)) {
-        displayMessage("Username should be between 3 and 30 characters!", "error");
+        displayMessage("Username should be between 3 and 30 characters in length.", "error");
+        return;
+    }
+
+    if (!validatePassword(password)) {
+        displayMessage("Password should at least be of 8 characters in length.", "error");
         return;
     }
 
     const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
+        credentials: "include",
 
         headers: {
             "Content-Type": "application/json",
@@ -110,13 +120,60 @@ async function loginUser(event) {
     displayMessage(data.detail || "Login failed.", "error");
 }
 
-function registerUser(event) {
+async function registerUser(event) {
     event.preventDefault();
-    console.log("Register!");
+
+    const form = event.target.form;
+    const username = form.username.value;
+    const password = form.password.value;
+    const confirmPassword = form.confirm_password.value;
+
+    console.log(validateUsername(username));
+
+    if (!validateUsername(username)) {
+        displayMessage("Username should be between 3 and 30 characters in length.", "error");
+        return;
+    }
+
+    if (!validatePassword(password)) {
+        displayMessage("Password should at least be of 8 characters in length.", "error");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        displayMessage("Password and Confirm Password do not match.", "error");
+        return;
+    }
+
+    const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        credentials: "include",
+
+        headers: {
+            "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+            username: username,
+            password: password,
+        }),
+    });
+
+    if (response.ok) {
+        console.log("registerUser: Registration successful!");
+        displayMessage("Registration Successful! You can now log in...", "success");
+        // renderLoginForm();
+        return;
+    }
+
+    const data = await response.json();
+    displayMessage(data.detail || "Registration failed.", "error");
 }
 
 async function checkAuth() {
-    const response = await fetch(`${API_URL}/me`);
+    const response = await fetch(`${API_URL}/me`, {
+        credentials: "include",
+    });
 
     if (response.ok) {
         const data = await response.json();
