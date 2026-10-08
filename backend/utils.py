@@ -3,7 +3,7 @@ import time
 import hashlib
 import secrets
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash, VerificationError, VerifyMismatchError
@@ -130,6 +130,14 @@ def authenticate_session(raw_token: str) -> User | None:
         user = db.get(User, session.user_id)
 
         return user
+
+
+def delete_user_session(token: str) -> None:
+    token_hash = hashlib.sha256(token.encode()).digest()
+
+    with Session(engine) as db:
+        db.execute(delete(UserSession).where(UserSession.token_hash == token_hash))
+        db.commit()
 
 
 """
