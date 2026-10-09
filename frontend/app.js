@@ -1,28 +1,35 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = document.querySelector('meta[name="auth-api-url"]')?.content || "/api";
 const CONTENT = document.querySelector(".content");
 
-function renderLoginForm() {
+function renderLoginForm(message = "") {
     CONTENT.innerHTML = `
 <!-- Login Form -->
 <h1>Login</h1>
 
-<form>
+<form id="login-form">
     <div class="field">
-        <label for="name">Username</label>
-        <input type="text" name="username" autofocus autocomplete="off" />
+        <label for="login-username">Username</label>
+        <input id="login-username" type="text" name="username" autofocus autocomplete="username" required />
     </div>
     <div class="field">
-        <label for="password">Password</label>
-        <input type="password" name="password" autocomplete="off" />
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" name="password" autocomplete="current-password" required />
     </div>
-    <div class="message hidden"></div>
+    <div class="message hidden" role="alert"></div>
     <div class="button-field">
-        <button type="submit" class="form-action-button main-form-button" onclick="loginUser(event)">Log In</button>
+        <button type="submit" class="form-action-button main-form-button">Log In</button>
 
         <i>Don't have an account?</i>
-        <button type="button" class="form-action-button" onclick="renderRegistrationForm()">Register</button>
+        <button type="button" class="form-action-button" id="show-registration">Register</button>
     </div>
 </form>`;
+
+    CONTENT.querySelector("#login-form").addEventListener("submit", loginUser);
+    CONTENT.querySelector("#show-registration").addEventListener("click", () => renderRegistrationForm());
+
+    if (message) {
+        displayMessage(message, "error");
+    }
 }
 
 function renderRegistrationForm() {
@@ -30,27 +37,30 @@ function renderRegistrationForm() {
 <!-- Register Form -->
 <h1>Register</h1>
 
-<form>
+<form id="registration-form">
     <div class="field">
-        <label for="name">Username</label>
-        <input type="text" name="username" autofocus autocomplete="off" />
+        <label for="registration-username">Username</label>
+        <input id="registration-username" type="text" name="username" autofocus autocomplete="username" required />
     </div>
     <div class="field">
-        <label for="password">Password</label>
-        <input type="password" name="password" autocomplete="off" />
+        <label for="registration-password">Password</label>
+        <input id="registration-password" type="password" name="password" autocomplete="new-password" required />
     </div>
     <div class="field">
-        <label for="confirm_password">Confirm Password</label>
-        <input type="password" name="confirm_password" autocomplete="off" />
+        <label for="confirm-password">Confirm Password</label>
+        <input id="confirm-password" type="password" name="confirm_password" autocomplete="new-password" required />
     </div>
-    <div class="message hidden"></div>
+    <div class="message hidden" role="alert"></div>
     <div class="button-field">
-        <button type="submit" class="form-action-button main-form-button" onclick="registerUser(event)">Register</button>
+        <button type="submit" class="form-action-button main-form-button">Register</button>
 
         <i>Already have an account?</i>
-        <button type="button" class="form-action-button" onclick="renderLoginForm()">Log In</button>
+        <button type="button" class="form-action-button" id="show-login">Log In</button>
     </div>
 </form>`;
+
+    CONTENT.querySelector("#registration-form").addEventListener("submit", registerUser);
+    CONTENT.querySelector("#show-login").addEventListener("click", () => renderLoginForm());
 }
 
 function showDashboard(user) {
@@ -59,47 +69,77 @@ function showDashboard(user) {
 
 <h1>Dashboard</h1>
 <div class="user-info">
-    Welcome, <span id="username">${user.username}</span>!
-    <i>Your user ID is #${user.id}.</i>
+    Welcome, <span id="username"></span>!
+    <i>Your user ID is #${Number(user.id)}.</i>
 </div>
-<form>
+<form id="logout-form">
     <div class="button-field">
-        <button type="button" class="form-action-button main-form-button" onclick="logoutUser(event)">
+        <button type="submit" class="form-action-button main-form-button">
             Log Out
         </button>
     </div>
 </form>`;
+
+    CONTENT.querySelector("#username").textContent = user.username;
+    CONTENT.querySelector("#logout-form").addEventListener("submit", logoutUser);
 }
 
-function displayMessage(m, t) {
-    const MESSAGE = document.querySelector(".message");
-
-    MESSAGE.textContent = m;
-    if (t === "error") {
-        MESSAGE.classList.remove("success");
-        MESSAGE.classList.add("error");
-    } else if (t === "success") {
-        MESSAGE.classList.remove("error");
-        MESSAGE.classList.add("success");
+function displayMessage(message, type) {
+    const messageElement = document.querySelector(".message");
+    if (!messageElement) {
+        return;
     }
-    if (MESSAGE.classList.contains("hidden")) {
-        MESSAGE.classList.remove("hidden");
+
+    messageElement.textContent = message;
+    messageElement.classList.toggle("error", type === "error");
+    messageElement.classList.toggle("success", type === "success");
+    messageElement.classList.remove("hidden");
+}
+
+function setFormBusy(form, busy) {
+    form.querySelectorAll("input, button").forEach((element) => {
+        element.disabled = busy;
+    });
+}
+
+function validateUsername(username) {
+    return typeof username === "string" && username.trim().length >= 3 && username.trim().length <= 30;
+}
+
+function validatePassword(password) {
+    return typeof password === "string" && password.length >= 8;
+}
+
+async function requestJson(path, options = {}) {
+    let response;
+
+    try {
+        response = await fetch(`${API_URL}${path}`, {
+            credentials: "include",
+            ...options,
+        });
+    } catch {
+        throw new Error("Unable to connect to the authentication server.");
     }
-}
 
-function validateUsername(n) {
-    return typeof n === "string" && n.trim().length >= 3 && n.trim().length <= 30;
-}
+    let data = null;
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+        data = await response.json().catch(() => null);
+    }
 
-function validatePassword(n) {
-    return typeof n === "string" && n.trim().length >= 8;
+    if (!response.ok) {
+        throw new Error(data?.detail || "The request failed.");
+    }
+
+    return data;
 }
 
 async function loginUser(event) {
     event.preventDefault();
 
-    const form = event.target.form;
-    const username = form.username.value;
+    const form = event.currentTarget;
+    const username = form.username.value.trim();
     const password = form.password.value;
 
     if (!validateUsername(username)) {
@@ -108,44 +148,34 @@ async function loginUser(event) {
     }
 
     if (!validatePassword(password)) {
-        displayMessage("Password should at least be of 8 characters in length.", "error");
+        displayMessage("Password should be at least 8 characters in length.", "error");
         return;
     }
 
-    const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        credentials: "include",
-
-        headers: {
-            "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-            username: username,
-            password: password,
-        }),
-    });
-
-    if (response.ok) {
-        console.log("loginUser: Login successful!");
-        displayMessage("Login Successful!", "success");
-        checkAuth();
-        return;
+    setFormBusy(form, true);
+    try {
+        await requestJson("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+        await checkAuth();
+    } catch (error) {
+        displayMessage(error.message, "error");
+    } finally {
+        if (form.isConnected) {
+            setFormBusy(form, false);
+        }
     }
-
-    const data = await response.json();
-    displayMessage(data.detail || "Login failed.", "error");
 }
 
 async function registerUser(event) {
     event.preventDefault();
 
-    const form = event.target.form;
-    const username = form.username.value;
+    const form = event.currentTarget;
+    const username = form.username.value.trim();
     const password = form.password.value;
     const confirmPassword = form.confirm_password.value;
-
-    console.log(validateUsername(username));
 
     if (!validateUsername(username)) {
         displayMessage("Username should be between 3 and 30 characters in length.", "error");
@@ -153,7 +183,7 @@ async function registerUser(event) {
     }
 
     if (!validatePassword(password)) {
-        displayMessage("Password should at least be of 8 characters in length.", "error");
+        displayMessage("Password should be at least 8 characters in length.", "error");
         return;
     }
 
@@ -162,57 +192,52 @@ async function registerUser(event) {
         return;
     }
 
-    const response = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        credentials: "include",
-
-        headers: {
-            "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-            username: username,
-            password: password,
-        }),
-    });
-
-    if (response.ok) {
-        console.log("registerUser: Registration successful!");
-        displayMessage("Registration Successful! You can now log in...", "success");
-        return;
+    setFormBusy(form, true);
+    try {
+        await requestJson("/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
+        renderLoginForm("Registration successful. You can now log in.");
+        displayMessage("Registration successful. You can now log in.", "success");
+    } catch (error) {
+        displayMessage(error.message, "error");
+    } finally {
+        if (form.isConnected) {
+            setFormBusy(form, false);
+        }
     }
-
-    const data = await response.json();
-    displayMessage(data.detail || "Registration failed.", "error");
 }
 
 async function logoutUser(event) {
     event.preventDefault();
 
-    const response = await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
-    if (response.ok) {
+    const form = event.currentTarget;
+    setFormBusy(form, true);
+    try {
+        await requestJson("/auth/logout", { method: "POST" });
         renderLoginForm();
+    } catch (error) {
+        displayMessage(error.message, "error");
+        setFormBusy(form, false);
     }
 }
 
 async function checkAuth() {
     try {
-        const response = await fetch(`${API_URL}/me`, {
-            credentials: "include",
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            // console.log("Logged in as:", data.user.username);
-            showDashboard(data);
-        } else {
-            console.log("checkAuth: Not logged in!");
+        const user = await requestJson("/me");
+        showDashboard(user);
+        return true;
+    } catch (error) {
+        if (error.message === "Not authenticated.") {
             renderLoginForm();
+            return false;
         }
-    } catch (e) {
+
         renderLoginForm();
-        displayMessage(e, "error");
+        displayMessage(error.message, "error");
+        return false;
     }
 }
 
