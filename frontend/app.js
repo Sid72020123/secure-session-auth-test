@@ -17,7 +17,7 @@ function renderLoginForm() {
     </div>
     <div class="message hidden"></div>
     <div class="button-field">
-        <button type="button" class="form-action-button main-form-button" onclick="loginUser(event)">Log In</button>
+        <button type="submit" class="form-action-button main-form-button" onclick="loginUser(event)">Log In</button>
 
         <i>Don't have an account?</i>
         <button type="button" class="form-action-button" onclick="renderRegistrationForm()">Register</button>
@@ -45,10 +45,28 @@ function renderRegistrationForm() {
     </div>
     <div class="message hidden"></div>
     <div class="button-field">
-        <button type="button" class="form-action-button main-form-button" onclick="registerUser(event)">Register</button>
+        <button type="submit" class="form-action-button main-form-button" onclick="registerUser(event)">Register</button>
 
         <i>Already have an account?</i>
         <button type="button" class="form-action-button" onclick="renderLoginForm()">Log In</button>
+    </div>
+</form>`;
+}
+
+function showDashboard(user) {
+    CONTENT.innerHTML = `
+<!-- Dashboard -->
+
+<h1>Dashboard</h1>
+<div class="user-info">
+    Welcome, <span id="username">${user.username}</span>!
+    <i>Your user ID is #${user.id}.</i>
+</div>
+<form>
+    <div class="button-field">
+        <button type="button" class="form-action-button main-form-button" onclick="logoutUser(event)">
+            Log Out
+        </button>
     </div>
 </form>`;
 }
@@ -83,7 +101,6 @@ async function loginUser(event) {
     const form = event.target.form;
     const username = form.username.value;
     const password = form.password.value;
-    console.log(validateUsername(username));
 
     if (!validateUsername(username)) {
         displayMessage("Username should be between 3 and 30 characters in length.", "error");
@@ -162,7 +179,6 @@ async function registerUser(event) {
     if (response.ok) {
         console.log("registerUser: Registration successful!");
         displayMessage("Registration Successful! You can now log in...", "success");
-        // renderLoginForm();
         return;
     }
 
@@ -170,19 +186,33 @@ async function registerUser(event) {
     displayMessage(data.detail || "Registration failed.", "error");
 }
 
-async function checkAuth() {
-    const response = await fetch(`${API_URL}/me`, {
-        credentials: "include",
-    });
+async function logoutUser(event) {
+    event.preventDefault();
 
+    const response = await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
     if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        // console.log("Logged in as:", data.user.username);
-        // showDashboard(data.user);
-    } else {
-        console.log("checkAuth: Not logged in!");
         renderLoginForm();
+    }
+}
+
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_URL}/me`, {
+            credentials: "include",
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            // console.log("Logged in as:", data.user.username);
+            showDashboard(data);
+        } else {
+            console.log("checkAuth: Not logged in!");
+            renderLoginForm();
+        }
+    } catch (e) {
+        renderLoginForm();
+        displayMessage(e, "error");
     }
 }
 

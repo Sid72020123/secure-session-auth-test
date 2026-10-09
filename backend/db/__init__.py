@@ -12,7 +12,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 def create_sqlite_engine():
     # SQLite database
-    engine = create_engine("sqlite:///auth.db", echo=True)
+    engine = create_engine(
+        "sqlite:///auth.db", echo=False
+    )  # Set it to True to view the queries executed
     return engine
 
 

@@ -154,3 +154,17 @@ button.main-form-button:hover {
 .message.hidden {
     display: none;
 }
+
+.user-info {
+    margin: 2rem 0;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.user-info i {
+    display: block;
+    font-size: 0.9rem;
+    color: gray;
+    margin-top: 2rem;
+}
